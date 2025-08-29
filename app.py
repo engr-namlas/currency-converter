@@ -22,7 +22,7 @@ st.set_page_config(page_title="Currency Converter", page_icon="💱", layout="ce
 st.title("💱 Currency Converter")
 
 # Input fields
-amount = st.number_input("Enter amount:", min_value=0.0, value=1.0, step=0.1)
+amount = st.number_input("Enter amount:", min_value=0.000, value=1.000, step=0.100)
 from_currency = st.selectbox("From Currency", list(exchange_rates.keys()))
 to_currency = st.selectbox("To Currency", list(exchange_rates.keys()))
 
