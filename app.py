@@ -8,7 +8,7 @@ How to run in Google Colab / Hugging Face:
 3. The app will launch and give you a public URL (share=True).
 """
 
-import gradio as gr
+import streamlit as gr
 
 # Hardcoded example exchange rates relative to USD
 exchange_rates = {
