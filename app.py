@@ -35,4 +35,4 @@ def convert_currency(amount, from_curr, to_curr):
 
 # Streamlit UI
 st.set_page_config(page_title="Currency Converter", page_icon="💱", layout="centered")
-st.title("💱 Simple Currency")
+st.title("💱 Simple Currency Converter")
