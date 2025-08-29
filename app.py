@@ -1,14 +1,12 @@
-
 """
-Currency Converter App (Gradio Version)
+Currency Converter App (Streamlit Version)
 
-How to run in Google Colab / Hugging Face:
-1. Install Gradio: pip install gradio
-2. Run this script: python app.py
-3. The app will launch and give you a public URL (share=True).
+How to run locally:
+1. Install requirements: pip install -r requirements.txt
+2. Run the app: streamlit run app.py
 """
 
-import streamlit as gr
+import streamlit as st
 
 # Hardcoded example exchange rates relative to USD
 exchange_rates = {
@@ -19,30 +17,20 @@ exchange_rates = {
     "INR": 83.0,
 }
 
-def convert(amount, from_currency, to_currency):
-    try:
-        amount = float(amount)
-        if amount < 0:
-            return "❌ Amount cannot be negative."
-        if from_currency == to_currency:
-            return "⚠️ Please select different currencies."
-        # Convert to USD first, then to target
+st.set_page_config(page_title="Currency Converter", page_icon="💱", layout="centered")
+
+st.title("💱 Currency Converter")
+
+# Input fields
+amount = st.number_input("Enter amount:", min_value=0.0, value=1.0, step=0.1)
+from_currency = st.selectbox("From Currency", list(exchange_rates.keys()))
+to_currency = st.selectbox("To Currency", list(exchange_rates.keys()))
+
+if st.button("Convert"):
+    if from_currency == to_currency:
+        st.warning("Please select different currencies.")
+    else:
+        # Convert using relative exchange rates
         usd_amount = amount / exchange_rates[from_currency]
         converted = usd_amount * exchange_rates[to_currency]
-        return f"{amount} {from_currency} = {round(converted, 2)} {to_currency}"
-    except Exception as e:
-        return f"❌ Error: {e}"
-
-with gr.Blocks() as demo:
-    gr.Markdown("# 💱 Currency Converter\nSimple converter with fixed rates (USD, EUR, PKR, GBP, INR).")
-    
-    amount = gr.Number(value=1.0, label="Amount")
-    from_currency = gr.Dropdown(list(exchange_rates.keys()), value="USD", label="From Currency")
-    to_currency = gr.Dropdown(list(exchange_rates.keys()), value="PKR", label="To Currency")
-    output = gr.Textbox(label="Converted Value")
-    
-    convert_btn = gr.Button("Convert")
-    convert_btn.click(convert, inputs=[amount, from_currency, to_currency], outputs=output)
-
-# Launch app with share=True for Hugging Face / Colab
-demo.launch(share=True)
+        st.success(f"{amount} {from_currency} = {round(converted, 2)} {to_currency}")
