@@ -1,4 +1,4 @@
-import gradio as gr
+import streamlit as gr
 
 # Hardcoded exchange rates (relative to USD)
 exchange_rates = {
