@@ -1,6 +1,5 @@
-import streamlit as gr
+import streamlit as st
 
-# Hardcoded exchange rates (relative to USD)
 exchange_rates = {
     "USD": {"rate": 1.0, "symbol": "$"},
     "EUR": {"rate": 0.92, "symbol": "€"},
@@ -23,46 +22,30 @@ def convert_currency(amount, from_curr, to_curr):
     converted = amount_in_usd * exchange_rates[to_curr]["rate"]
     return amount_in_usd, converted
 
-def format_output(amount, from_curr, to_curr, decimals):
+st.title("💱 Simple Currency Converter")
+
+amount = st.number_input("Enter Amount", min_value=0.0, value=1.0)
+from_curr = st.selectbox("From Currency", list(exchange_rates.keys()), index=0)
+to_curr = st.selectbox("To Currency", list(exchange_rates.keys()), index=4)
+decimals = st.slider("Decimal Places", 0, 4, 2)
+
+if st.button("🔄 Convert"):
     valid, error = validate_input(amount, from_curr, to_curr)
     if not valid:
-        return error
-    
-    amount_in_usd, converted = convert_currency(amount, from_curr, to_curr)
-    rounded_value = round(converted, decimals)
+        st.warning(error)
+    else:
+        amount_in_usd, converted = convert_currency(amount, from_curr, to_curr)
+        rounded_value = round(converted, decimals)
+        symbol_from = exchange_rates[from_curr]["symbol"]
+        symbol_to = exchange_rates[to_curr]["symbol"]
 
-    symbol_from = exchange_rates[from_curr]["symbol"]
-    symbol_to = exchange_rates[to_curr]["symbol"]
+        st.success(
+            f"💱 Converted via USD:\n"
+            f"{symbol_from}{amount} {from_curr} → "
+            f"${amount_in_usd:.4f} USD → "
+            f"{symbol_to}{converted:.4f} {to_curr}\n\n"
+            f"Rounded ({decimals} dp): {symbol_to_
 
-    return (
-        f"💱 Converted via USD:\n"
-        f"{symbol_from}{amount} {from_curr} → "
-        f"${amount_in_usd:.4f} USD → "
-        f"{symbol_to}{converted:.4f} {to_curr}\n\n"
-        f"Rounded ({decimals} dp): {symbol_to}{rounded_value}"
-    )
-
-def reset_fields():
-    return 1.0, "USD", "PKR", 2
-
-with gr.Blocks() as demo:
-    gr.Markdown("## 💱 Simple Currency Converter\nEnter an amount, choose currencies, and convert instantly.")
-    
-    with gr.Row():
-        amount = gr.Number(label="Amount", value=1.0)
-        decimals = gr.Slider(0, 4, value=2, step=1, label="Decimal Places")
-    
-    with gr.Row():
-        from_curr = gr.Dropdown(list(exchange_rates.keys()), label="From", value="USD")
-        to_curr = gr.Dropdown(list(exchange_rates.keys()), label="To", value="PKR")
-    
-    with gr.Row():
-        convert_btn = gr.Button("🔄 Convert")
-        reset_btn = gr.Button("♻️ Reset")
-    
-    output = gr.Textbox(label="Result", lines=5)
-
-    convert_btn.click(format_output, [amount, from_curr, to_curr, decimals], output)
     reset_btn.click(reset_fields, outputs=[amount, from_curr, to_curr, decimals])
 
 demo.launch()
