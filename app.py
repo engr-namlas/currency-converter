@@ -1,36 +1,68 @@
-"""
-Currency Converter App (Streamlit Version)
+import gradio as gr
 
-How to run locally:
-1. Install requirements: pip install -r requirements.txt
-2. Run the app: streamlit run app.py
-"""
-
-import streamlit as st
-
-# Hardcoded example exchange rates relative to USD
+# Hardcoded exchange rates (relative to USD)
 exchange_rates = {
-    "USD": 1.0,
-    "EUR": 0.92,
-    "PKR": 278.0,
-    "GBP": 0.79,
-    "INR": 83.0,
+    "USD": {"rate": 1.0, "symbol": "$"},
+    "EUR": {"rate": 0.92, "symbol": "€"},
+    "GBP": {"rate": 0.79, "symbol": "£"},
+    "JPY": {"rate": 145.3, "symbol": "¥"},
+    "PKR": {"rate": 278.0, "symbol": "₨"},
 }
 
-st.set_page_config(page_title="Currency Converter", page_icon="💱", layout="centered")
+def validate_input(amount, from_curr, to_curr):
+    if amount is None:
+        return False, "❌ Please enter a number."
+    if amount < 0:
+        return False, "❌ Amount cannot be negative."
+    if from_curr == to_curr:
+        return False, f"ℹ️ Same currency selected ({from_curr}). Result: {amount}"
+    return True, None
 
-st.title("💱 Currency Converter")
+def convert_currency(amount, from_curr, to_curr):
+    amount_in_usd = amount / exchange_rates[from_curr]["rate"]
+    converted = amount_in_usd * exchange_rates[to_curr]["rate"]
+    return amount_in_usd, converted
 
-# Input fields
-amount = st.number_input("Enter amount:", min_value=0.000, value=1.000, step=0.100)
-from_currency = st.selectbox("From Currency", list(exchange_rates.keys()))
-to_currency = st.selectbox("To Currency", list(exchange_rates.keys()))
+def format_output(amount, from_curr, to_curr, decimals):
+    valid, error = validate_input(amount, from_curr, to_curr)
+    if not valid:
+        return error
+    
+    amount_in_usd, converted = convert_currency(amount, from_curr, to_curr)
+    rounded_value = round(converted, decimals)
 
-if st.button("Convert"):
-    if from_currency == to_currency:
-        st.warning("Please select different currencies.")
-    else:
-        # Convert using relative exchange rates
-        usd_amount = amount / exchange_rates[from_currency]
-        converted = usd_amount * exchange_rates[to_currency]
-        st.success(f"{amount} {from_currency} = {round(converted, 2)} {to_currency}")
+    symbol_from = exchange_rates[from_curr]["symbol"]
+    symbol_to = exchange_rates[to_curr]["symbol"]
+
+    return (
+        f"💱 Converted via USD:\n"
+        f"{symbol_from}{amount} {from_curr} → "
+        f"${amount_in_usd:.4f} USD → "
+        f"{symbol_to}{converted:.4f} {to_curr}\n\n"
+        f"Rounded ({decimals} dp): {symbol_to}{rounded_value}"
+    )
+
+def reset_fields():
+    return 1.0, "USD", "PKR", 2
+
+with gr.Blocks() as demo:
+    gr.Markdown("## 💱 Simple Currency Converter\nEnter an amount, choose currencies, and convert instantly.")
+    
+    with gr.Row():
+        amount = gr.Number(label="Amount", value=1.0)
+        decimals = gr.Slider(0, 4, value=2, step=1, label="Decimal Places")
+    
+    with gr.Row():
+        from_curr = gr.Dropdown(list(exchange_rates.keys()), label="From", value="USD")
+        to_curr = gr.Dropdown(list(exchange_rates.keys()), label="To", value="PKR")
+    
+    with gr.Row():
+        convert_btn = gr.Button("🔄 Convert")
+        reset_btn = gr.Button("♻️ Reset")
+    
+    output = gr.Textbox(label="Result", lines=5)
+
+    convert_btn.click(format_output, [amount, from_curr, to_curr, decimals], output)
+    reset_btn.click(reset_fields, outputs=[amount, from_curr, to_curr, decimals])
+
+demo.launch()
